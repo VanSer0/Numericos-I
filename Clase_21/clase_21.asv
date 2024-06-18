@@ -1,0 +1,79 @@
+clc;
+clearvars;
+
+e = 1.602e-19; %C
+m_e = 9.189e-31; %Kg
+q = -e;
+
+x = (-0.05:0.008:0.05);
+y = (-0.05:0.008:0.05);
+z = (-0.05:0.008:0.05);
+
+[X,Y,Z] = meshgrid(x,y,z);
+
+B_0 = 1; %Teslas
+
+
+B_x = zeros(size(X)); %el tamaño debe ser igual a cualquiera de los vectores X,Y,Z. (son todos iguales)
+B_y = zeros(size(Y));
+B_z = B_0*ones(size(Z));
+
+figure(1);
+quiver3(X,Y,Z,B_x,B_y,B_z);
+xlabel('x (m)');
+ylabel('y (m)');
+zlabel('z (m)');
+
+%Posición inicial
+r0 = [0,0,0];
+%Velocidad inicial
+E = *abs(q);
+K = E;
+V = sqrt(2*K/m_e);
+v0 = V*[1,1,0.1]/sqrt(2+(0.1)^2);
+
+
+
+
+N = 1e2;
+t = zeros(N,1);
+r = zeros(N,3); 
+v = zeros(N,3);
+
+v(1,:) = v0;
+r(1,:) = r0;
+h = 1e-12;
+
+for i=1:N-1
+    B = [0,0,B_0];
+
+    k1 = h*(q/m_e) * cross(v(i,:),B);
+    k2 = h*(q/m_e) * cross(v(i,:)+k1/2,B);
+    k3 = h*(q/m_e) * cross(v(i,:)+k2/2,B);
+    k4 = h*(q/m_e) * cross(v(i,:)+k3,B);
+
+    v(i+1,:) = v(i,:)+(1/6)*(k1+2*k2+2*k3+k4);
+
+    k1 = h*v(i+1,:);
+    k2 = h*v(i+1,:);
+    k3 = h*v(i+1,:);
+    k4 = h*v(i+1,:);
+    r(i+1,:) = r(i,:)+(1/6)*(k1+2*k2+2*k3+k4);
+
+    t(i) = i*h;
+
+end
+
+figure(2)
+clf(2);
+plot3(r0(1),r0(2),r0(3), 'o', 'Color','g','MarkerFaceColor','k')
+hold on;
+plot3(r(:,1),r(:,2),r(:,3),'-','Color','k','MarkerFaceColor','k')
+hold off;
+grid on;
+xlabel('x')
+ylabel('y')
+zlabel('z')
+text(0,0,0,'\leftarrow t = 0' )
+text(r(end,1),r(end,2),r(end,3),['\leftarrow t = ', num2str(t(end))])
+
